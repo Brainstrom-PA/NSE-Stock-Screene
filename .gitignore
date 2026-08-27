@@ -29,3 +29,9 @@ models/*.joblib
 .DS_Store
 .vscode/
 .idea/
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
