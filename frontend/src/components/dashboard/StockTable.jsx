@@ -28,25 +28,27 @@ function ScreenBadge({ symbol, priceOk, liqOk, qualified }) {
   const cls = qualified
     ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
     : "border-zinc-700 bg-zinc-800/40 text-zinc-500";
-  const text = qualified
-    ? "PASS"
-    : !priceOk && !liqOk
-    ? "FAIL"
-    : !priceOk
-    ? "PRICE"
-    : "LIQUIDITY";
   return (
     <span
       data-testid={DASH.screenBadge(symbol)}
       className={`inline-flex items-center px-2 py-0.5 rounded-sm border text-[10px] tracking-wider font-medium ${cls}`}
     >
-      {text}
+      <ScreenBadgeText priceOk={priceOk} liqOk={liqOk} qualified={qualified} />
     </span>
   );
 }
 
 const Muted = () => <span className="text-zinc-600">—</span>;
 const Pending = () => <span className="text-zinc-600 italic">Pending</span>;
+
+// --- Small, single-purpose cell components (extracted to keep row logic flat) ---
+
+function ScreenBadgeText({ priceOk, liqOk, qualified }) {
+  if (qualified) return "PASS";
+  if (!priceOk && !liqOk) return "FAIL";
+  if (!priceOk) return "PRICE";
+  return "LIQUIDITY";
+}
 
 function SignalPill({ signal, lastSignal }) {
   if (signal === "BUY")
@@ -67,6 +69,35 @@ function SignalPill({ signal, lastSignal }) {
     return <span className="text-emerald-500/60 text-[10px] tracking-wider">BUY</span>;
   if (lastSignal === "SELL")
     return <span className="text-red-500/60 text-[10px] tracking-wider">SELL</span>;
+  return <Muted />;
+}
+
+function AiProbabilityCell({ probability, hasSignal }) {
+  if (probability != null) {
+    const cls = probability >= 0.6 ? "text-emerald-300" : "text-amber-300";
+    return <span className={cls}>{(probability * 100).toFixed(0)}%</span>;
+  }
+  if (hasSignal) {
+    return <span className="text-zinc-600 text-[10px] italic">Insufficient</span>;
+  }
+  return <Muted />;
+}
+
+function DecisionCell({ decision, hasSignal }) {
+  if (decision === "ACCEPT")
+    return (
+      <span className="inline-flex px-2 py-0.5 rounded-sm border border-emerald-500/60 bg-emerald-500/15 text-emerald-300 text-[10px] font-semibold tracking-wider">
+        ACCEPT
+      </span>
+    );
+  if (decision === "AVOID")
+    return (
+      <span className="inline-flex px-2 py-0.5 rounded-sm border border-red-500/60 bg-red-500/15 text-red-300 text-[10px] font-semibold tracking-wider">
+        AVOID
+      </span>
+    );
+  if (hasSignal)
+    return <span className="text-zinc-600 text-[10px] italic">Pending ML</span>;
   return <Muted />;
 }
 
@@ -173,40 +204,13 @@ export default function StockTable({ rows, onSelect, selected }) {
                     <SignalPill signal={s.signal} lastSignal={s.last_signal} />
                   </td>
                   <td className="px-3 py-2 text-right font-mono-data">
-                    {s.ai_probability != null ? (
-                      <span
-                        className={
-                          s.ai_probability >= 0.6
-                            ? "text-emerald-300"
-                            : "text-amber-300"
-                        }
-                      >
-                        {(s.ai_probability * 100).toFixed(0)}%
-                      </span>
-                    ) : s.last_signal ? (
-                      <span className="text-zinc-600 text-[10px] italic">
-                        Insufficient
-                      </span>
-                    ) : (
-                      <Muted />
-                    )}
+                    <AiProbabilityCell
+                      probability={s.ai_probability}
+                      hasSignal={!!s.last_signal}
+                    />
                   </td>
                   <td className="px-3 py-2 text-right">
-                    {s.decision === "ACCEPT" ? (
-                      <span className="inline-flex px-2 py-0.5 rounded-sm border border-emerald-500/60 bg-emerald-500/15 text-emerald-300 text-[10px] font-semibold tracking-wider">
-                        ACCEPT
-                      </span>
-                    ) : s.decision === "AVOID" ? (
-                      <span className="inline-flex px-2 py-0.5 rounded-sm border border-red-500/60 bg-red-500/15 text-red-300 text-[10px] font-semibold tracking-wider">
-                        AVOID
-                      </span>
-                    ) : s.last_signal ? (
-                      <span className="text-zinc-600 text-[10px] italic">
-                        Pending ML
-                      </span>
-                    ) : (
-                      <Muted />
-                    )}
+                    <DecisionCell decision={s.decision} hasSignal={!!s.last_signal} />
                   </td>
                 </tr>
               );

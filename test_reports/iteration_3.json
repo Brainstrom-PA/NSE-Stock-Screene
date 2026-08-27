@@ -1,0 +1,24 @@
+{
+  "summary": "Iteration 3 (post code-quality refactor verification). Backend: all endpoints healthy — /api/health 200 ok; /api/source shows mode=demo, ready=true, label='DEMO / SIMULATED', model.trained=true with n_train=401, n_test=101, primary_model=random_forest, auc_lr/auc_rf present. /api/snapshot returns 20 rows with EVERY row having smma20, smma120, etq_5m/20m/60m, avg_ltp_20m/60m as non-null numbers on the first call. Every row with ai_probability has a matching ACCEPT/AVOID decision (all 20 rows AVOID in this session due to low probabilities; threshold rule >=0.60 verified programmatically — no mismatches). Explanations are non-empty and mention actual factors (momentum, market-depth, SMMA spread, volatility, trade activity, LTQ). /api/stock/ITC returns 200 with full ScreenedStock shape; /api/stock/UNKNOWN returns 404. pytest suite: 62 passed / 0 failed. Frontend: dashboard loads at REACT_APP_BACKEND_URL, header shows 'AI MARKET SCREENING', badges 'DATA SOURCE: DEMO / SIMULATED' and 'SYSTEM STATUS: RUNNING', zero console errors over 10s. 4 KPI cards render (universe=20, price=14, liquidity=15, signals=0/1). Stock table renders 20 rows, all screen badges non-empty (PASS/PRICE/LIQUIDITY/FAIL), NO '—' placeholder in any SMMA/ETQ/avg-LTP cell across all 20 rows. Clicking ITC row opens detail panel with all five sections (Screening Result, Top of Book, SMMA, Rolling Activity, AI Model), no 'future phase' / 'not implemented' text. AI Model section shows numeric Probability + Decision + explanation. Auto-refresh confirmed: header timestamp advanced and row content changed within 6s window with no manual reload. No regression from the code-quality cleanup.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/tests/", "/app/test_reports/iteration_3.json"],
+  "action_items": [
+    "Minor (non-blocking): data-testid naming mismatch. constants/testIds.js defines DASH.cardValue = (n) => `summary-card-value-${n}` but SummaryCards.jsx renders `${testid}-value` producing `summary-card-{name}-value` (e.g. summary-card-universe-value, NOT summary-card-value-universe as the review request expected). The DASH.cardValue helper is defined but unused. Either (a) use DASH.cardValue(name) directly in SummaryCards.jsx, or (b) remove the unused helper. Tests should target `summary-card-{name}-value`."
+  ],
+  "critical_code_review_comments": [
+    "SummaryCards.jsx does not use the DASH.cardValue helper — it constructs its own testid pattern. This creates a hidden inconsistency between the central testid registry and the actual DOM. Either consume the helper or delete it.",
+    "Both `x is None` (pipeline.py) and `random.Random(seed)` (demo_provider.py) are correctly retained; the previous flag was invalid. Confirmed no behavioural regression."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "100%", "frontend": "100%" },
+  "seed_data_creation": "None — demo provider self-warms in ~5-10s at startup.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All 62 pytest tests pass. Backend snapshot returns rows as a top-level list (not wrapped under 'rows'); each item has shape { tick: {symbol, ltp, ...}, smma20, smma120, etq_5m/20m/60m, avg_ltp_20m/60m, signal, last_signal, ai_probability, decision, explanation, price_qualified, liquidity_qualified, qualified }. Frontend KPI value testids are `summary-card-{universe|price|liquidity|signals}-value` — NOT the pattern in review request. All other testids (stock-table, stock-row-{SYM}, screen-badge-{SYM}, stock-detail-panel, dashboard-header, system-source-badge, system-status-badge) work as expected.",
+  "rca of the issue": "N/A — no regression detected. Only cosmetic testid naming inconsistency between DASH.cardValue helper and its (non-)consumer in SummaryCards.jsx."
+}

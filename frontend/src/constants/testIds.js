@@ -6,7 +6,7 @@ export const DASH = {
   sourceBadge: "system-source-badge",
   statusBadge: "system-status-badge",
   card: (name) => `summary-card-${name}`,
-  cardValue: (name) => `summary-card-value-${name}`,
+  cardValue: (name) => `summary-card-${name}-value`,
   table: "stock-table",
   row: (sym) => `stock-row-${sym}`,
   screenBadge: (sym) => `screen-badge-${sym}`,

@@ -23,7 +23,6 @@ function Card({ testid, label, value, hint, accent }) {
     </div>
   );
 }
-
 export default function SummaryCards({ summary }) {
   const s = summary || {};
   return (

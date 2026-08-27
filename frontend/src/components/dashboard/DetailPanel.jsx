@@ -18,6 +18,50 @@ const stanceOf = (s) => {
   return "FLAT";
 };
 
+// --- Class helpers extracted from nested ternaries for readability ---
+
+function stanceClass(stance) {
+  if (stance === "BULLISH") return "text-emerald-300";
+  if (stance === "BEARISH") return "text-red-300";
+  return "text-zinc-500";
+}
+
+function latestEventValue(stock) {
+  return stock.signal || stock.last_signal || "—";
+}
+
+function latestEventClass(stock) {
+  if (stock.signal === "BUY") return "text-emerald-300 font-semibold";
+  if (stock.signal === "SELL") return "text-red-300 font-semibold";
+  if (stock.last_signal === "BUY") return "text-emerald-500/70";
+  if (stock.last_signal === "SELL") return "text-red-500/70";
+  return "text-zinc-500";
+}
+
+function probabilityValue(stock) {
+  if (stock.ai_probability != null) {
+    return `${(stock.ai_probability * 100).toFixed(1)}%`;
+  }
+  return stock.last_signal ? "Insufficient training data" : "—";
+}
+
+function probabilityClass(stock) {
+  if (stock.ai_probability == null) return "text-zinc-500 italic";
+  return stock.ai_probability >= 0.6 ? "text-emerald-300" : "text-amber-300";
+}
+
+function decisionValue(stock) {
+  if (stock.decision === "ACCEPT") return "ACCEPT";
+  if (stock.decision === "AVOID") return "AVOID";
+  return stock.last_signal ? "Pending ML training data" : "—";
+}
+
+function decisionClass(stock) {
+  if (stock.decision === "ACCEPT") return "text-emerald-300 font-semibold";
+  if (stock.decision === "AVOID") return "text-red-300 font-semibold";
+  return "text-zinc-500 italic";
+}
+
 export default function DetailPanel({ stock }) {
   if (!stock) {
     return (
@@ -116,28 +160,12 @@ export default function DetailPanel({ stock }) {
         <Row
           label="Stance"
           value={stanceOf(stock)}
-          valueClass={
-            stanceOf(stock) === "BULLISH"
-              ? "text-emerald-300"
-              : stanceOf(stock) === "BEARISH"
-              ? "text-red-300"
-              : "text-zinc-500"
-          }
+          valueClass={stanceClass(stanceOf(stock))}
         />
         <Row
           label="Latest Event"
-          value={stock.signal || stock.last_signal || "—"}
-          valueClass={
-            stock.signal === "BUY"
-              ? "text-emerald-300 font-semibold"
-              : stock.signal === "SELL"
-              ? "text-red-300 font-semibold"
-              : stock.last_signal === "BUY"
-              ? "text-emerald-500/70"
-              : stock.last_signal === "SELL"
-              ? "text-red-500/70"
-              : "text-zinc-500"
-          }
+          value={latestEventValue(stock)}
+          valueClass={latestEventClass(stock)}
         />
         {stock.last_signal_at && (
           <Row
@@ -187,39 +215,13 @@ export default function DetailPanel({ stock }) {
         </div>
         <Row
           label="Probability"
-          value={
-            stock.ai_probability != null
-              ? `${(stock.ai_probability * 100).toFixed(1)}%`
-              : stock.last_signal
-              ? "Insufficient training data"
-              : "—"
-          }
-          valueClass={
-            stock.ai_probability != null
-              ? stock.ai_probability >= 0.6
-                ? "text-emerald-300"
-                : "text-amber-300"
-              : "text-zinc-500 italic"
-          }
+          value={probabilityValue(stock)}
+          valueClass={probabilityClass(stock)}
         />
         <Row
           label="Decision"
-          value={
-            stock.decision === "ACCEPT"
-              ? "ACCEPT"
-              : stock.decision === "AVOID"
-              ? "AVOID"
-              : stock.last_signal
-              ? "Pending ML training data"
-              : "—"
-          }
-          valueClass={
-            stock.decision === "ACCEPT"
-              ? "text-emerald-300 font-semibold"
-              : stock.decision === "AVOID"
-              ? "text-red-300 font-semibold"
-              : "text-zinc-500 italic"
-          }
+          value={decisionValue(stock)}
+          valueClass={decisionClass(stock)}
         />
         {stock.explanation && (
           <div className="mt-2 text-xs text-zinc-400 leading-relaxed">

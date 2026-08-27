@@ -4,10 +4,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@/index.css";
 import App from "@/App";
 
+// React-Query default: how long a fetched value stays "fresh" before it is
+// re-fetched on the next mount. One minute is a safe conservative default;
+// this app's own live polling lives inside useMarketData.
+const STALE_TIME_MS = 60_000;
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60_000,
+      staleTime: STALE_TIME_MS,
       refetchOnWindowFocus: false,
     },
   },

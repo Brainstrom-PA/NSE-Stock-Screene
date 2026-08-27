@@ -18,34 +18,36 @@ export function useMarketData(intervalMs = 2000) {
   const [lastUpdated, setLastUpdated] = useState(null);
   const timerRef = useRef(null);
 
-  const fetchAll = async () => {
-    try {
-      const [snap, src] = await Promise.all([
-        axios.get(`${API}/snapshot`),
-        axios.get(`${API}/source`),
-      ]);
-      const rows = snap.data;
-      setSnapshot(rows);
-      setSource(src.data);
-      // Derive the summary client-side from the same snapshot, so the KPI
-      // cards and the table are guaranteed to reflect the SAME tick.
-      setSummary({
-        nse_universe: rows.length,
-        price_qualified: rows.filter((r) => r.price_qualified).length,
-        liquidity_qualified: rows.filter((r) => r.liquidity_qualified).length,
-        fully_qualified: rows.filter((r) => r.qualified).length,
-        active_signals: rows.filter((r) => r.signal != null).length,
-        lifetime_signals: rows.filter((r) => r.last_signal != null).length,
-        signals_status: "SMMA(20)/SMMA(120) crossover live",
-      });
-      setLastUpdated(new Date());
-      setError(null);
-    } catch (e) {
-      setError(e?.message || "Failed to load market data");
-    }
-  };
-
   useEffect(() => {
+    // Defined inside the effect so React's exhaustive-deps rule is honest
+    // and the interval never captures a stale closure.
+    const fetchAll = async () => {
+      try {
+        const [snap, src] = await Promise.all([
+          axios.get(`${API}/snapshot`),
+          axios.get(`${API}/source`),
+        ]);
+        const rows = snap.data;
+        setSnapshot(rows);
+        setSource(src.data);
+        // Derive the summary client-side from the same snapshot, so the KPI
+        // cards and the table are guaranteed to reflect the SAME tick.
+        setSummary({
+          nse_universe: rows.length,
+          price_qualified: rows.filter((r) => r.price_qualified).length,
+          liquidity_qualified: rows.filter((r) => r.liquidity_qualified).length,
+          fully_qualified: rows.filter((r) => r.qualified).length,
+          active_signals: rows.filter((r) => r.signal != null).length,
+          lifetime_signals: rows.filter((r) => r.last_signal != null).length,
+          signals_status: "SMMA(20)/SMMA(120) crossover live",
+        });
+        setLastUpdated(new Date());
+        setError(null);
+      } catch (e) {
+        setError(e?.message || "Failed to load market data");
+      }
+    };
+
     fetchAll();
     timerRef.current = setInterval(fetchAll, intervalMs);
     return () => clearInterval(timerRef.current);
