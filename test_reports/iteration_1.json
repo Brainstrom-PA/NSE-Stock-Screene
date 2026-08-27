@@ -1,0 +1,27 @@
+{
+  "summary": "Phase 1 smoke test of AI Market Screener passed end-to-end. Backend /api/health, /api/source, /api/summary, /api/snapshot, /api/stock/{symbol} all behaved per spec. Frontend dashboard rendered header, badges, 4 KPI cards matching API, 20 stock rows with correct PASS/FAIL/PRICE/LIQUIDITY badges, ITC detail panel populated on row click, 2s polling visibly updates LTP, no console errors, and Phase-2 fields correctly display '—' / 'Pending'.",
+  "tested_scope": ["backend", "frontend", "integration"],
+  "passed": [
+    "GET /api/health -> 200 {status:ok, service:ai-market-screener}",
+    "GET /api/source -> mode=demo, provider=demo, ready=true, label='DEMO / SIMULATED'; storage_tables includes market_observations, crossover_events, trade_outcomes, ml_training_examples, ml_models",
+    "GET /api/summary -> nse_universe=20, active_signals=0, signals_status='Pending (Phase 2)', price_qualified/liquidity_qualified/fully_qualified integers within 0..20",
+    "GET /api/snapshot returns exactly 20 rows; every row tick.source=demo, tick.exchange=NSE, bid_price<ask_price; all Phase-2 fields (smma20/smma120/etq_*/avg_ltp_*/signal/ai_probability/decision) are null",
+    "Screening correctness verified against thresholds (LTP 30..500 inclusive, bid_qty>1M and ask_qty>1M strict) across all 20 symbols -> 0 mismatches",
+    "Snapshot ticks: 20/20 LTPs changed across two consecutive polls (~2.5s apart)",
+    "GET /api/stock/ITC -> 200 with symbol=ITC; GET /api/stock/UNKNOWNXYZ -> 404",
+    "Frontend loads with header 'AI MARKET SCREENING' and both badges DATA SOURCE: DEMO / SIMULATED and SYSTEM STATUS: RUNNING",
+    "KPI cards render values matching /api/summary (universe=20, price=14, liquidity=15, signals=0)",
+    "Stock table shows all 20 rows with screen badges (ITC=PASS, TCS/RELIANCE=FAIL, SUZLON/YESBANK/IDEA/HDFCBANK=PRICE, BEL/NMDC/IOC=LIQUIDITY)",
+    "Clicking stock-row-ITC populates stock-detail-panel with market depth (bid/ask price & quantity, LTP, LTQ, volume)",
+    "2s polling: LTP visibly changes over 5-second window without manual reload",
+    "No fabricated data: SMMA/ETQ/AVG-LTP cells show '—' and detail panel shows 'Pending' for Phase-2 fields",
+    "No browser console errors during dashboard interaction"
+  ],
+  "failed": [],
+  "action_items": [
+    "Note (informational, not a blocker): review_request references testids like 'summary-card-universe-value' and code uses 'summary-card-value-universe'. Actual UI exposes BOTH patterns (both worked in test), so no fix needed."
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "full_testing_deferred": true
+}

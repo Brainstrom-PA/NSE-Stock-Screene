@@ -1,0 +1,48 @@
+{
+  "summary": "Phase 2a (SMMA(20)/SMMA(120) + BUY/SELL crossover) end-to-end verified. Backend: all 37 unit tests pass and 6 new live-API integration tests (tests/test_api_phase2.py) pass against the public URL. Frontend: SMMA20/SMMA120 render '₹<num>' on all 20 rows, Signal column shows bright BUY/SELL pill when API row.signal is set (muted otherwise, '—' only when both null), Active Signals KPI matched the bright-signal row count on the checked snapshot (KPI=1, bright pills=1), signals_status hint reads 'SMMA(20)/SMMA(120) crossover live', ITC detail panel populated numeric SMMA20/SMMA120, Stance BEARISH, Latest Event SELL, Event Time 14:26:37. No console errors during a 10s / 2s polling window. ETQ / AVG-LTP still '—' and Decision still 'Pending' — no fabricated data.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Summary KPI consistency",
+        "issue": "The review request states that the fix 'derives summary client-side from snapshot'. However /app/frontend/src/hooks/useMarketData.js STILL calls GET /api/summary in parallel with /api/snapshot (see line 25). Because backend /api/summary and /api/snapshot each call pipeline.run_once() independently and each call advances the SMMA state one bar, the two responses can disagree — this is exactly the bug the review flagged. The one-off UI check happened to match (KPI=1, bright pills=1), but this is race-prone. Fix: derive nse_universe/price_qualified/liquidity_qualified/active_signals/lifetime_signals from `snap.data` in useMarketData.js and drop the /api/summary call.",
+        "affected_selectors": ["summary-card-value-signals", "summary-card-value-price", "summary-card-value-liquidity", "summary-card-value-universe"]
+      }
+    ],
+    "design_issues": []
+  },
+  "verified_features": [
+    "GET /api/snapshot returns 20 rows with smma20/smma120 as non-null floats on the first call (150-tick warm-up works)",
+    "smma20 and smma120 are within 25% of ltp on every row (lagging price as expected)",
+    "GET /api/summary returns signals_status='SMMA(20)/SMMA(120) crossover live', lifetime_signals int, active_signals in 0..20",
+    "row.signal ∈ {null, BUY, SELL}; last_signal ∈ {null, BUY, SELL}; last_signal_at is ISO when last_signal set",
+    "When row.signal is BUY/SELL, last_signal==signal and last_signal_at within 60s",
+    "SMMA20 & SMMA120 columns render '₹<num>' for all 20 rows",
+    "Signal column: bright pill when row.signal set, muted BUY/SELL when only last_signal set, '—' when both null",
+    "Clicking stock-row-ITC populates DetailPanel: numeric SMMA20, SMMA120, Stance (BULLISH/BEARISH/FLAT), Latest Event, Event Time",
+    "pytest: 37/37 unit tests + 6/6 new API tests all pass",
+    "No console errors during a 10s window with 2s polling",
+    "ETQ / AVG-LTP cells still '—', Decision still 'Pending' — no fabricated data"
+  ],
+  "test_report_links": [
+    "/app/tests/test_smma.py",
+    "/app/tests/test_crossover.py",
+    "/app/tests/test_api_phase2.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Apply the announced fix: in /app/frontend/src/hooks/useMarketData.js, remove the axios.get('/api/summary') call and derive summary fields client-side from the snapshot (nse_universe=snap.length, price_qualified/liquidity_qualified/fully_qualified computed by filter, active_signals=snap.filter(s=>s.signal!==null).length, lifetime_signals=snap.filter(s=>s.last_signal!==null).length, signals_status static string). This eliminates the race between /summary and /snapshot flagged in the review request."
+  ],
+  "critical_code_review_comments": [
+    "pipeline.run_once() is invoked twice per UI poll (once from /snapshot and once from /summary) which advances SMMA state twice and doubles the crossover-event surface area on the server; deriving summary client-side is the right fix.",
+    "SymbolState.last_signal_at stored as ISO string is fine, but consider storing as datetime and serializing at edge for consistency with tick.timestamp (which uses datetime).",
+    "DEMO_WARMUP_TICKS=150 is executed synchronously in Pipeline.__init__, which extends first-request cold start; consider a lazy warm-up flag or a background task."
+  ],
+  "updated_files": ["/app/tests/test_api_phase2.py"],
+  "success_rate": {"backend": "100%", "frontend": "95%"},
+  "seed_data_creation": "None — demo provider generates its own ticks.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Phase 2a is functionally correct. Only outstanding item is the client-side summary derivation in useMarketData.js (see action_items). All backend endpoints and unit/integration tests are green. /app/tests/test_api_phase2.py is the regression suite for Phase 2a live-API behaviour."
+}

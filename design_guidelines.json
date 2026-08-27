@@ -1,0 +1,108 @@
+{
+  "theme": "dark",
+  "app_type": "fintech-dashboard",
+  "design_philosophy": "The Performance Pro meets Swiss High-Contrast. Strict, data-dense, authoritative, and frictionless. Eliminates decorative visual noise to prioritize quantitative legibility and market signal clarity.",
+  "typography": {
+    "headings": {
+      "fontFamily": "Chivo",
+      "weights": ["400", "700"],
+      "usage": "Headers, panel titles, summary card metrics.",
+      "tracking": "tracking-tight"
+    },
+    "body": {
+      "fontFamily": "IBM Plex Sans",
+      "weights": ["400", "500"],
+      "usage": "General UI text, labels, badges."
+    },
+    "data_table": {
+      "fontFamily": "JetBrains Mono",
+      "weights": ["400", "500", "600"],
+      "usage": "All numerical data, tickers, stock prices, volumes. CRITICAL: Must use tabular-nums utility to prevent horizontal layout shift during the 2s data refresh."
+    }
+  },
+  "colors": {
+    "background": {
+      "base": "#0A0A0A",
+      "surface": "#121212",
+      "surface_hover": "#1A1A1A"
+    },
+    "text": {
+      "primary": "#FAFAFA",
+      "secondary": "#A1A1AA",
+      "muted": "#52525B"
+    },
+    "semantic": {
+      "bid_profit": "#10B981", 
+      "ask_loss": "#EF4444",
+      "signal_active": "#3B82F6",
+      "warning": "#F59E0B"
+    },
+    "border": {
+      "default": "#27272A",
+      "focus": "#3F3F46"
+    }
+  },
+  "surface_strategies": {
+    "style": "Grid Borders (The Technical Look)",
+    "rules": [
+      "No drop shadows or heavy blur effects on data surfaces.",
+      "Use explicit 1px solid borders (`border-zinc-800`) to separate sections and table cells.",
+      "Dashboard components should sit flush or use 4px (rounded-sm) border radius maximum for a sharp, technical feel."
+    ]
+  },
+  "layouts": {
+    "structure": "High Density App Layout",
+    "header": {
+      "height": "h-14",
+      "components": "Title on left, System Status Badges (DEMO, RUNNING) on right. Use neon-accented dots for 'RUNNING' status."
+    },
+    "main_grid": {
+      "classes": "grid grid-cols-1 lg:grid-cols-12 gap-px bg-zinc-800 border border-zinc-800",
+      "description": "Use a 1px gap with a border background to create crisp technical grid lines between the left main content and right sidebar."
+    },
+    "summary_cards": {
+      "layout": "grid grid-cols-2 md:grid-cols-4 gap-4 mb-6",
+      "style": "Flat, 1px border, dense padding (p-4). Metric value large (text-3xl), label small (text-xs uppercase)."
+    },
+    "data_table": {
+      "alignment": "Left-align string columns (Symbol). Right-align ALL numerical columns (LTP, Qty, Prices).",
+      "density": "High. Use py-2 px-3 for table cells. No excessive whitespace.",
+      "placeholders": "Render placeholder cells (SMMA, AI Probability) with a muted text color (text-zinc-500) and '—' or 'Pending' to clearly separate Phase 1 vs Phase 2 features."
+    },
+    "detail_panel": {
+      "span": "col-span-1 lg:col-span-3",
+      "content": "Sticky positioning. Top half: Market Depth (Bids vs Asks). Bottom half: Blurred or wireframed empty states marked 'Not implemented in Phase 1'."
+    }
+  },
+  "components": {
+    "table": {
+      "base": "Shadcn Table",
+      "customization": "Override default borders. Add vertical borders between specific column groups (e.g., separating Price data from Volume data). Row hover state should be `hover:bg-zinc-900`."
+    },
+    "badges": {
+      "base": "Shadcn Badge",
+      "customization": "Square or rounded-sm. Use outline variants for secondary status, solid vibrant colors for LIVE/RUNNING states."
+    }
+  },
+  "motion": {
+    "tick_flash": "When market data (LTP, Bid/Ask) updates every 2 seconds, implement a subtle background flash on the changed cell. `bg-emerald-500/20` for upward movement, `bg-red-500/20` for downward. Fade out over 500ms.",
+    "hover": "Instant hover states (100ms) for data rows, no slow transitions that feel sluggish."
+  },
+  "instructions_to_main_agent": [
+    "INSTALL FONTS: Ensure you include Google Fonts for Chivo, IBM Plex Sans, and JetBrains Mono.",
+    "TABULAR NUMS: Absolutely critical. All numbers in the table must have the `tabular-nums` Tailwind class so the table doesn't jiggle horizontally when prices update.",
+    "SIMULATOR: Implement a `setInterval` or custom React hook to randomize the mock market data every 2 seconds to simulate the websocket.",
+    "TEST IDS: Add `data-testid` to rows, filter statuses, and badges (e.g., `data-testid='stock-row-RELIANCE'`, `data-testid='system-status-badge'`).",
+    "PLACEHOLDERS: Do not omit columns that are for future phases. Include them but display '—' or 'Pending' as requested by the user, colored in `text-zinc-600`.",
+    "COLOR STRICTNESS: Only use Emerald/Red for financial positive/negative. Do not use them for decorative UI elements.",
+    "MODULARITY: Keep the data fetching/simulation logic in a separate hook (`useMarketData`) so it can easily be swapped for Angel One SmartAPI WebSockets later."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Never center align the app container. No generic centered layouts.",
+    "Dark mode is the default and only mode for this specific trading UI.",
+    "Use 1px explicit borders for hierarchy. Avoid shadows on dark mode.",
+    "Implement micro-animations on interactive elements but avoid `transition-all`. Target specific properties.",
+    "Use `lucide-react` for any necessary UI icons, but keep them minimal.",
+    "Ensure all text contrast meets APCA/WCAG standards on dark backgrounds."
+  ]
+}

@@ -1,0 +1,72 @@
+@import url("https://fonts.googleapis.com/css2?family=Chivo:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base: #0A0A0A;
+  --bg-surface: #121212;
+  --bg-hover: #1A1A1A;
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-muted: #52525B;
+  --border-default: #27272A;
+  --border-focus: #3F3F46;
+  --profit: #10B981;
+  --loss: #EF4444;
+  --signal: #3B82F6;
+  --warn: #F59E0B;
+}
+
+html, body, #root, .App {
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
+
+body {
+  margin: 0;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss01";
+}
+
+.font-heading   { font-family: "Chivo", "IBM Plex Sans", sans-serif; letter-spacing: -0.02em; }
+.font-mono-data { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+/* subtle tick-flash effect on data changes */
+@keyframes tick-up   { 0% { background: rgba(16,185,129,0.22); } 100% { background: transparent; } }
+@keyframes tick-down { 0% { background: rgba(239,68,68,0.22); }  100% { background: transparent; } }
+.tick-up   { animation: tick-up 500ms ease-out; }
+.tick-down { animation: tick-down 500ms ease-out; }
+
+@layer base {
+  :root {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 7.1%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7.1%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --radius: 0.25rem;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
