@@ -66,3 +66,4 @@ class ScreenedStock(BaseModel):
     last_signal_at: Optional[str] = None    # ISO timestamp of `last_signal`.
     ai_probability: Optional[float] = None
     decision: Optional[str] = None          # "ACCEPT" | "AVOID" | None (Pending)
+    explanation: Optional[str] = None       # Human-readable rationale from real features.

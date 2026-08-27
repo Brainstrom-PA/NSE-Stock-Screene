@@ -146,11 +146,21 @@ export default function StockTable({ rows, onSelect, selected }) {
                     {s.smma120 != null ? `₹${s.smma120.toFixed(2)}` : <Muted />}
                   </td>
                   <td className="px-3 py-2 text-right font-mono-data text-zinc-300">{fmtQty(t.ltq)}</td>
-                  <td className="px-3 py-2 text-right"><Muted /></td>
-                  <td className="px-3 py-2 text-right"><Muted /></td>
-                  <td className="px-3 py-2 text-right"><Muted /></td>
-                  <td className="px-3 py-2 text-right"><Muted /></td>
-                  <td className="px-3 py-2 text-right"><Muted /></td>
+                  <td className="px-3 py-2 text-right font-mono-data text-zinc-300">
+                    {s.etq_5m != null ? fmtQty(s.etq_5m) : <Muted />}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono-data text-zinc-300">
+                    {s.etq_20m != null ? fmtQty(s.etq_20m) : <Muted />}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono-data text-zinc-300">
+                    {s.etq_60m != null ? fmtQty(s.etq_60m) : <Muted />}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono-data text-zinc-300">
+                    {s.avg_ltp_20m != null ? `₹${s.avg_ltp_20m.toFixed(2)}` : <Muted />}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono-data text-zinc-300">
+                    {s.avg_ltp_60m != null ? `₹${s.avg_ltp_60m.toFixed(2)}` : <Muted />}
+                  </td>
                   <TickCell value={t.bid_price} className="text-emerald-400/90 border-l border-zinc-800" />
                   <td className={`px-3 py-2 text-right font-mono-data ${s.liquidity_qualified ? "text-emerald-300" : "text-zinc-500"}`}>
                     {fmtQty(t.bid_quantity)}
@@ -162,8 +172,42 @@ export default function StockTable({ rows, onSelect, selected }) {
                   <td className="px-3 py-2 text-right border-l border-zinc-800">
                     <SignalPill signal={s.signal} lastSignal={s.last_signal} />
                   </td>
-                  <td className="px-3 py-2 text-right"><Muted /></td>
-                  <td className="px-3 py-2 text-right"><Pending /></td>
+                  <td className="px-3 py-2 text-right font-mono-data">
+                    {s.ai_probability != null ? (
+                      <span
+                        className={
+                          s.ai_probability >= 0.6
+                            ? "text-emerald-300"
+                            : "text-amber-300"
+                        }
+                      >
+                        {(s.ai_probability * 100).toFixed(0)}%
+                      </span>
+                    ) : s.last_signal ? (
+                      <span className="text-zinc-600 text-[10px] italic">
+                        Insufficient
+                      </span>
+                    ) : (
+                      <Muted />
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    {s.decision === "ACCEPT" ? (
+                      <span className="inline-flex px-2 py-0.5 rounded-sm border border-emerald-500/60 bg-emerald-500/15 text-emerald-300 text-[10px] font-semibold tracking-wider">
+                        ACCEPT
+                      </span>
+                    ) : s.decision === "AVOID" ? (
+                      <span className="inline-flex px-2 py-0.5 rounded-sm border border-red-500/60 bg-red-500/15 text-red-300 text-[10px] font-semibold tracking-wider">
+                        AVOID
+                      </span>
+                    ) : s.last_signal ? (
+                      <span className="text-zinc-600 text-[10px] italic">
+                        Pending ML
+                      </span>
+                    ) : (
+                      <Muted />
+                    )}
+                  </td>
                 </tr>
               );
             })}

@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import random
 import threading
-from datetime import datetime, timezone
-from typing import Dict, List
+from datetime import datetime, timedelta, timezone
+from typing import Dict, List, Optional
 
 from .base_provider import BaseMarketDataProvider
 from .instrument_master import DEMO_UNIVERSE, DemoInstrument
@@ -44,6 +44,25 @@ class DemoMarketDataProvider(BaseMarketDataProvider):
             self._step()
             return list(self._state.values())
 
+    def simulate_backdated_snapshots(
+        self, count: int, interval_seconds: float
+    ) -> List[List[MarketTick]]:
+        """Return `count` full-universe snapshots with backdated timestamps.
+
+        Used at startup so demo mode has ~60 minutes of ETQ / avg-LTP
+        history available on the very first API call, and so a few
+        crossovers accumulate for the ML model. RNG state advances
+        normally — the "live" simulation continues from where this stops.
+        """
+        end = datetime.now(timezone.utc)
+        snapshots: List[List[MarketTick]] = []
+        with self._lock:
+            for i in range(count):
+                ts = end - timedelta(seconds=(count - i - 1) * interval_seconds)
+                self._step(ts)
+                snapshots.append(list(self._state.values()))
+        return snapshots
+
     # --- Internals ---------------------------------------------------------
 
     def _bootstrap(self) -> None:
@@ -68,9 +87,14 @@ class DemoMarketDataProvider(BaseMarketDataProvider):
             source="demo",
         )
 
-    def _step(self) -> None:
-        """Advance every instrument by one small random step."""
-        now = datetime.now(timezone.utc)
+    def _step(self, ts: Optional[datetime] = None) -> None:
+        """Advance every instrument by one small random step.
+
+        When `ts` is provided it is used as the tick's timestamp instead of
+        `now()`; this lets the pipeline seed backdated historical ticks so
+        the ETQ / avg-LTP rolling windows are populated immediately.
+        """
+        now = ts if ts is not None else datetime.now(timezone.utc)
         for inst in DEMO_UNIVERSE:
             prev = self._state[inst.symbol]
 

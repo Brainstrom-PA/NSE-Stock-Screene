@@ -1,5 +1,4 @@
 import { DASH } from "../../constants/testIds";
-import { Lock } from "lucide-react";
 
 function Row({ label, value, valueClass = "" }) {
   return (
@@ -8,18 +7,6 @@ function Row({ label, value, valueClass = "" }) {
         {label}
       </span>
       <span className={`font-mono-data text-sm ${valueClass}`}>{value}</span>
-    </div>
-  );
-}
-
-function EmptyBox({ title, note }) {
-  return (
-    <div className="border border-dashed border-zinc-800 rounded-sm p-4 mt-3">
-      <div className="flex items-center gap-2 text-zinc-500 text-[11px] uppercase tracking-wider">
-        <Lock className="h-3 w-3" />
-        {title}
-      </div>
-      <div className="text-xs text-zinc-600 italic mt-2">{note}</div>
     </div>
   );
 }
@@ -163,18 +150,83 @@ export default function DetailPanel({ stock }) {
         )}
       </section>
 
-      <EmptyBox
-        title="Price chart with crossover markers"
-        note="Chart rendering — planned for a future phase"
-      />
-      <EmptyBox
-        title="LTQ / ETQ activity (5m · 20m · 60m)"
-        note="Not implemented in Phase 1"
-      />
-      <EmptyBox
-        title="ML Probability · Decision · Explanation"
-        note="Not implemented in Phase 1"
-      />
+      <section>
+        <div className="text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
+          Rolling Activity
+        </div>
+        <Row
+          label="ETQ 5m"
+          value={stock.etq_5m != null ? qty(stock.etq_5m) : "—"}
+          valueClass="text-zinc-100"
+        />
+        <Row
+          label="ETQ 20m"
+          value={stock.etq_20m != null ? qty(stock.etq_20m) : "—"}
+          valueClass="text-zinc-100"
+        />
+        <Row
+          label="ETQ 60m"
+          value={stock.etq_60m != null ? qty(stock.etq_60m) : "—"}
+          valueClass="text-zinc-100"
+        />
+        <Row
+          label="Avg LTP 20m"
+          value={stock.avg_ltp_20m != null ? inr(stock.avg_ltp_20m) : "—"}
+          valueClass="text-zinc-100"
+        />
+        <Row
+          label="Avg LTP 60m"
+          value={stock.avg_ltp_60m != null ? inr(stock.avg_ltp_60m) : "—"}
+          valueClass="text-zinc-100"
+        />
+      </section>
+
+      <section>
+        <div className="text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
+          AI Model
+        </div>
+        <Row
+          label="Probability"
+          value={
+            stock.ai_probability != null
+              ? `${(stock.ai_probability * 100).toFixed(1)}%`
+              : stock.last_signal
+              ? "Insufficient training data"
+              : "—"
+          }
+          valueClass={
+            stock.ai_probability != null
+              ? stock.ai_probability >= 0.6
+                ? "text-emerald-300"
+                : "text-amber-300"
+              : "text-zinc-500 italic"
+          }
+        />
+        <Row
+          label="Decision"
+          value={
+            stock.decision === "ACCEPT"
+              ? "ACCEPT"
+              : stock.decision === "AVOID"
+              ? "AVOID"
+              : stock.last_signal
+              ? "Pending ML training data"
+              : "—"
+          }
+          valueClass={
+            stock.decision === "ACCEPT"
+              ? "text-emerald-300 font-semibold"
+              : stock.decision === "AVOID"
+              ? "text-red-300 font-semibold"
+              : "text-zinc-500 italic"
+          }
+        />
+        {stock.explanation && (
+          <div className="mt-2 text-xs text-zinc-400 leading-relaxed">
+            {stock.explanation}
+          </div>
+        )}
+      </section>
     </aside>
   );
 }

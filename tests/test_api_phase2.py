@@ -71,11 +71,3 @@ def test_active_signal_crossover_consistency():
             assert row["last_signal"] == row["signal"]
             ts = datetime.fromisoformat(row["last_signal_at"].replace("Z", "+00:00"))
             assert now - ts < timedelta(seconds=60), f"stale last_signal_at for {row['tick']['symbol']}"
-
-
-def test_pending_fields_still_none():
-    r = requests.get(f"{BASE}/api/snapshot", timeout=20)
-    for row in r.json():
-        for k in ("etq_5m", "etq_20m", "etq_60m", "avg_ltp_20m", "avg_ltp_60m",
-                  "ai_probability", "decision"):
-            assert row[k] is None, f"{k} should be None for phase-2a"
