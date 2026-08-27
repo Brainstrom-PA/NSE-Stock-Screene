@@ -1,10 +1,10 @@
 """
-Supervisor entry-point.
+Application entry-point for the FastAPI service.
 
-Emergent's supervisord runs `uvicorn server:app` from /app/backend, so
-this module simply re-exports the FastAPI application defined in
-`app.main`. All routing, screening and demo simulation live there.
+The FastAPI application is defined in app.main and re-exported here
+for the ASGI server entry-point.
 """
-from app.main import app  # re-export for `uvicorn server:app`
+
+from app.main import app
 
 __all__ = ["app"]
